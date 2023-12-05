@@ -7,7 +7,7 @@ const {
 	delete_boat,
 } = require("../models/boatModel.js");
 const { get_boat_loads, manage_load } = require("../models/loadModel.js");
-const { getUrl } = require("../utils/utils.js");
+const { getUrl, checkJwt } = require("../utils/utils.js");
 
 const router = express.Router();
 
@@ -15,8 +15,8 @@ const errors = {
 	server: "Internal server error",
 	missingAttributes:
 		"The request object is missing at least one of the required attributes",
-	invalidBoatId: "No boat with this boat_id exists",
-	notFound: "The specified boat and/or load does not exist",
+	invalidBoatId: "You own no boat with this boat_id, or it does not exist",
+	notFound: "The specified boat and/or load does not exist, or you do not own it",
 	alreadyLoaded: "The load is already loaded on another boat",
 	mismatchedEntity:
 		"No boat with this boat_id is loaded with the load with this load_id",
@@ -38,12 +38,13 @@ function validateBoat(req, res, next) {
 }
 
 // Add a valid boat
-router.post("/", validateBoat, async (req, res) => {
+router.post("/", checkJwt, validateBoat, async (req, res) => {
 	try {
 		const boat = await post_boat(
 			req.body.name,
 			req.body.type,
 			req.body.length,
+			req.auth.sub,
 			getUrl(req)
 		);
 		res.status(201).json(boat);
@@ -54,9 +55,9 @@ router.post("/", validateBoat, async (req, res) => {
 });
 
 // Get a boat
-router.get("/:id", async (req, res) => {
+router.get("/:id", checkJwt, async (req, res) => {
 	try {
-		const boat = await get_boat(req.params.id, getUrl(req));
+		const boat = await get_boat(req.params.id, req.auth.sub, getUrl(req));
 
 		if (!boat) {
 			return res.status(404).json(error(errors.invalidBoatId));
@@ -69,9 +70,13 @@ router.get("/:id", async (req, res) => {
 });
 
 // Get all boats
-router.get("/", async (req, res) => {
+router.get("/", checkJwt, async (req, res) => {
 	try {
-		const boats = await get_boats(getUrl(req), req.query.cursor);
+		const boats = await get_boats(
+			req.auth.sub,
+			getUrl(req),
+			req.query.cursor
+		);
 		res.status(200).json(boats);
 	} catch (err) {
 		console.error(err);
@@ -80,14 +85,24 @@ router.get("/", async (req, res) => {
 });
 
 // Update a boat
-router.patch("/:id", validateBoat, async (req, res) => {
+router.patch("/:id", checkJwt, validateBoat, async (req, res) => {
 	try {
 		const boat = {
 			name: req.body.name,
 			type: req.body.type,
 			length: req.body.length,
 		};
-		await patch_boat(req.params.id, boat, getUrl(req));
+		const updatedBoat = await patch_boat(
+			req.params.id,
+			boat,
+			req.auth.sub,
+			getUrl(req)
+		);
+
+		if (!updatedBoat) {
+			return res.status(404).json(error(errors.invalidBoatId));
+		}
+
 		res.status(204).end();
 	} catch (err) {
 		console.error(err);
@@ -96,9 +111,9 @@ router.patch("/:id", validateBoat, async (req, res) => {
 });
 
 // Delete a boat
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", checkJwt, async (req, res) => {
 	try {
-		const boat = await delete_boat(req.params.id);
+		const boat = await delete_boat(req.params.id, req.auth.sub);
 
 		if (!boat) {
 			return res.status(404).json(error(errors.invalidBoatId));
@@ -111,9 +126,9 @@ router.delete("/:id", async (req, res) => {
 });
 
 // Get all loads on a boat
-router.get("/:boat_id/loads", async (req, res) => {
+router.get("/:boat_id/loads", checkJwt, async (req, res) => {
 	try {
-		const boat = await get_boat(req.params.boat_id, getUrl(req));
+		const boat = await get_boat(req.params.boat_id, req.auth.sub, getUrl(req));
 		if (!boat) {
 			return res.status(404).json(error(errors.invalidBoatId));
 		}
@@ -126,9 +141,9 @@ router.get("/:boat_id/loads", async (req, res) => {
 });
 
 // Add a load to a boat
-router.put("/:boat_id/loads/:load_id", async (req, res) => {
+router.put("/:boat_id/loads/:load_id", checkJwt, async (req, res) => {
 	try {
-		await manage_load(req.params.load_id, req.params.boat_id);
+		await manage_load(req.params.load_id, req.params.boat_id, req.auth.sub);
 		res.status(204).end();
 	} catch (err) {
 		if (err.message === "NOT_FOUND") {
@@ -143,9 +158,9 @@ router.put("/:boat_id/loads/:load_id", async (req, res) => {
 });
 
 // Remove a load from a boat
-router.delete("/:boat_id/loads/:load_id", async (req, res) => {
+router.delete("/:boat_id/loads/:load_id", checkJwt, async (req, res) => {
 	try {
-		await manage_load(req.params.load_id, req.params.boat_id, true);
+		await manage_load(req.params.load_id, req.params.boat_id, req.auth.sub, true);
 		res.status(204).end();
 	} catch (err) {
 		if (err.message === "NOT_FOUND") {

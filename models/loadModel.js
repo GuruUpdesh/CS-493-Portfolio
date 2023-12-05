@@ -163,7 +163,7 @@ async function get_boat_loads(boatId, baseUrl) {
     }
 }
 
-async function manage_load(id, boat_id, removeCarrier = false) {
+async function manage_load(id, boat_id, owner, removeCarrier = false) {
 	const loadKey = datastore.key([LOAD, parseInt(id, 10)]);
 	const boatKey = datastore.key([BOAT, parseInt(boat_id, 10)]);
 	const [load, boat] = await Promise.all([
@@ -171,10 +171,15 @@ async function manage_load(id, boat_id, removeCarrier = false) {
 		datastore.get(boatKey),
 	]);
 
+	
 	if (!load[0] || !boat[0]) {
 		throw new Error("NOT_FOUND");
 	}
-
+	
+	if (boat[0].owner !== owner) {
+		throw new Error("FORBIDDEN");
+	}
+	
 	if (!removeCarrier && load[0].carrier) {
 		throw new Error("FORBIDDEN");
 	}

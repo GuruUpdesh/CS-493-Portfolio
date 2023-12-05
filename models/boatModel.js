@@ -14,10 +14,15 @@ function createSelf(url, id, isLoad) {
 }
 
 // Boat model
-async function post_boat(name, type, length, baseUrl) {
+async function post_boat(name, type, length, owner, baseUrl) {
 	try {
 		const key = datastore.key(BOAT);
-		const new_boat = { name: name, type: type, length: length };
+		const new_boat = {
+			name: name,
+			type: type,
+			length: length,
+			owner: owner,
+		};
 		await datastore.save({ key: key, data: new_boat });
 		return {
 			id: Number(key.id),
@@ -31,11 +36,11 @@ async function post_boat(name, type, length, baseUrl) {
 	}
 }
 
-async function get_boat(id, baseUrl) {
+async function get_boat(id, owner, baseUrl) {
 	try {
 		const key = datastore.key([BOAT, parseInt(id, 10)]);
 		const [entity] = await datastore.get(key);
-		if (!entity) {
+		if (!entity || entity.owner !== owner) {
 			return null;
 		}
 
@@ -60,10 +65,12 @@ async function get_boat(id, baseUrl) {
 
 const RESULTS_PER_PAGE = 3;
 
-async function get_boats(baseUrl, cursor) {
+async function get_boats(owner, baseUrl, cursor) {
 	try {
-		const q = datastore.createQuery(BOAT)
-		.limit(RESULTS_PER_PAGE);
+		const q = datastore
+			.createQuery(BOAT)
+			.limit(RESULTS_PER_PAGE)
+			.filter("owner", "=", owner);
 
 		if (cursor) {
 			q.start(cursor);
@@ -91,7 +98,7 @@ async function get_boats(baseUrl, cursor) {
 					self: createSelf(baseUrl, load[Datastore.KEY].id, true),
 				};
 			});
-		
+
 			return {
 				...addId(entity),
 				loads: mappedLoads,
@@ -101,7 +108,7 @@ async function get_boats(baseUrl, cursor) {
 
 		let results = {
 			boats: boats,
-		}
+		};
 
 		if (info.moreResults !== Datastore.NO_MORE_RESULTS) {
 			results.next = baseUrl + "/boats?cursor=" + info.endCursor;
@@ -114,12 +121,12 @@ async function get_boats(baseUrl, cursor) {
 	}
 }
 
-async function patch_boat(id, boat, baseUrl) {
+async function patch_boat(id, boat, owner, baseUrl) {
 	try {
 		const key = datastore.key([BOAT, parseInt(id, 10)]);
 		const [data] = await datastore.get(key);
 
-		if (data) {
+		if (data && data.owner === owner) {
 			const currentBoat = data;
 			const updateBoat = { ...currentBoat, ...boat };
 			await datastore.update({ key, data: updateBoat });
@@ -136,12 +143,12 @@ async function patch_boat(id, boat, baseUrl) {
 	}
 }
 
-async function delete_boat(id) {
+async function delete_boat(id, owner) {
 	try {
 		const boatKey = datastore.key([BOAT, parseInt(id, 10)]);
 		const [boatExists] = await datastore.get(boatKey);
 
-		if (!boatExists) {
+		if (!boatExists || boatExists.owner !== owner) {
 			return null;
 		}
 
@@ -166,20 +173,10 @@ async function delete_boat(id) {
 	}
 }
 
-function delete_all_boats() {
-	const q = datastore.createQuery(BOAT);
-	datastore.runQuery(q).then((entities) => {
-		entities[0].forEach((entity) => {
-			datastore.delete(entity[Datastore.KEY]);
-		});
-	});
-}
-
 module.exports = {
 	post_boat,
 	get_boat,
 	get_boats,
 	patch_boat,
 	delete_boat,
-	delete_all_boats,
 };
