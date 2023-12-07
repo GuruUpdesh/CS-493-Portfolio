@@ -62,7 +62,7 @@ async function get_load(id, baseUrl) {
 	}
 }
 
-const RESULTS_PER_PAGE = 3;
+const RESULTS_PER_PAGE = 5;
 
 async function get_loads(baseUrl, cursor) {
 	try {

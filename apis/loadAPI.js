@@ -69,6 +69,31 @@ router.get("/", checkJwt, async (req, res) => {
 	}
 });
 
+router.patch("/:id", checkJwt, validateLoad, async (req, res) => {
+	try {
+		const load = {
+			volume: req.body.volume,
+			item: req.body.item,
+			creation_date: req.body.creation_date,
+		}
+
+		const updatedLoad = await patch_load(
+			req.params.id,
+			load,
+			getUrl(req)
+		);
+
+		if (!updatedLoad) {
+			return res.status(404).json(error(errors.invalidLoadId));
+		}
+
+		res.status(200).json(updatedLoad);
+	} catch (err) {
+		console.error(err);
+		return res.status(500).json(error(errors.server));
+	}
+})
+
 router.delete("/:id", checkJwt, async (req, res) => {
 	try {
 		const load = await delete_load(req.params.id);

@@ -85,13 +85,15 @@ router.get("/", checkJwt, async (req, res) => {
 });
 
 // Update a boat
-router.patch("/:id", checkJwt, validateBoat, async (req, res) => {
+router.patch("/:id", checkJwt, async (req, res) => {
 	try {
-		const boat = {
-			name: req.body.name,
-			type: req.body.type,
-			length: req.body.length,
-		};
+		const boat = {}
+
+		// add optional attributes
+		if (req.body.name) boat.name = req.body.name;
+		if (req.body.type) boat.type = req.body.type;
+		if (req.body.length) boat.length = req.body.length;
+
 		const updatedBoat = await patch_boat(
 			req.params.id,
 			boat,
@@ -103,7 +105,7 @@ router.patch("/:id", checkJwt, validateBoat, async (req, res) => {
 			return res.status(404).json(error(errors.invalidBoatId));
 		}
 
-		res.status(204).end();
+		res.status(200).json(updatedBoat);
 	} catch (err) {
 		console.error(err);
 		return res.status(500).json(error(errors.server));

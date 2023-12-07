@@ -40,6 +40,7 @@ async function get_boat(id, owner, baseUrl) {
 	try {
 		const key = datastore.key([BOAT, parseInt(id, 10)]);
 		const [entity] = await datastore.get(key);
+		
 		if (!entity || entity.owner !== owner) {
 			return null;
 		}
@@ -63,7 +64,7 @@ async function get_boat(id, owner, baseUrl) {
 	}
 }
 
-const RESULTS_PER_PAGE = 3;
+const RESULTS_PER_PAGE = 5;
 
 async function get_boats(owner, baseUrl, cursor) {
 	try {
