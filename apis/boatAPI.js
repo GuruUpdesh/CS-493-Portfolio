@@ -6,7 +6,7 @@ const {
 	patch_boat,
 	delete_boat,
 } = require("../models/boatModel.js");
-const { get_boat_loads, manage_load } = require("../models/loadModel.js");
+const { manage_load } = require("../models/loadModel.js");
 const { getUrl, checkJwt } = require("../utils/utils.js");
 
 const router = express.Router();
@@ -121,21 +121,6 @@ router.delete("/:id", checkJwt, async (req, res) => {
 			return res.status(404).json(error(errors.invalidBoatId));
 		}
 		res.status(204).end();
-	} catch (err) {
-		console.error(err);
-		return res.status(500).json(error(errors.server));
-	}
-});
-
-// Get all loads on a boat
-router.get("/:boat_id/loads", checkJwt, async (req, res) => {
-	try {
-		const boat = await get_boat(req.params.boat_id, req.auth.sub, getUrl(req));
-		if (!boat) {
-			return res.status(404).json(error(errors.invalidBoatId));
-		}
-		const loads = await get_boat_loads(req.params.boat_id, getUrl(req));
-		res.status(200).json(loads);
 	} catch (err) {
 		console.error(err);
 		return res.status(500).json(error(errors.server));

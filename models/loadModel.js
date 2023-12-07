@@ -151,44 +151,6 @@ async function patch_load(id, load, baseUrl) {
 	}
 }
 
-async function get_boat_loads(boatId, baseUrl) {
-    try {
-        const q = datastore
-            .createQuery(LOAD)
-            .filter("carrier", "=", Number(boatId));
-        const [entities] = await datastore.runQuery(q);
-
-        const carrierPromises = [];
-        for (const entity of entities) {
-            const carrierPromise = datastore.key([BOAT, parseInt(entity.carrier, 10)]);
-            carrierPromises.push(datastore.get(carrierPromise));
-        }
-
-        const allCarriers = await Promise.all(carrierPromises);
-
-        const loads = entities.map((entity, index) => {
-            const carrierEntity = allCarriers[index];
-            if (carrierEntity) {
-                entity.carrier = {
-                    id: Number(carrierEntity[0][Datastore.KEY].id),
-                    name: carrierEntity[0].name,
-                    self: createSelf(baseUrl, carrierEntity[0][Datastore.KEY].id, true),
-                };
-            }
-
-            return {
-                ...addId(entity),
-                self: createSelf(baseUrl, entity[Datastore.KEY].id),
-            };
-        });
-
-        return { loads: loads };
-    } catch (err) {
-        console.error(err);
-        throw new Error("Datastore Error");
-    }
-}
-
 async function manage_load(id, boat_id, owner, removeCarrier = false) {
 	const loadKey = datastore.key([LOAD, parseInt(id, 10)]);
 	const boatKey = datastore.key([BOAT, parseInt(boat_id, 10)]);
@@ -241,7 +203,6 @@ module.exports = {
 	get_load,
 	get_loads,
 	patch_load,
-	get_boat_loads,
 	manage_load,
 	delete_load,
 };
