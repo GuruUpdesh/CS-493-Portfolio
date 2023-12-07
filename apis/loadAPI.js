@@ -6,7 +6,7 @@ const {
 	patch_load,
 	delete_load,
 } = require("../models/loadModel.js");
-const { getUrl, checkJwt } = require("../utils/utils.js");
+const { getUrl, checkJwt, validateMIME } = require("../utils/utils.js");
 
 const router = express.Router();
 
@@ -31,7 +31,7 @@ function validateLoad(req, res, next) {
 	next();
 }
 
-router.post("/", checkJwt, validateLoad, async (req, res) => {
+router.post("/", checkJwt, validateMIME(["application/json"]), validateLoad, async (req, res) => {
 	try {
 		const load = await post_load(
 			req.body.volume,
@@ -46,7 +46,7 @@ router.post("/", checkJwt, validateLoad, async (req, res) => {
 	}
 });
 
-router.get("/:id", checkJwt, async (req, res) => {
+router.get("/:id", checkJwt, validateMIME(["application/json"]), async (req, res) => {
 	try {
 		const load = await get_load(req.params.id, getUrl(req));
 
@@ -60,7 +60,7 @@ router.get("/:id", checkJwt, async (req, res) => {
 	}
 });
 
-router.get("/", checkJwt, async (req, res) => {
+router.get("/", checkJwt, validateMIME(["application/json"]), async (req, res) => {
 	try {
 		const loads = await get_loads(getUrl(req), req.query.cursor);
 		res.status(200).json(loads);
@@ -70,7 +70,7 @@ router.get("/", checkJwt, async (req, res) => {
 	}
 });
 
-router.patch("/:id", checkJwt, async (req, res) => {
+router.patch("/:id", checkJwt, validateMIME(["application/json"]), async (req, res) => {
 	try {
 		const load = {}
 
@@ -95,7 +95,7 @@ router.patch("/:id", checkJwt, async (req, res) => {
 	}
 })
 
-router.delete("/:id", checkJwt, async (req, res) => {
+router.delete("/:id", checkJwt, validateMIME(["application/json"]), async (req, res) => {
 	try {
 		const load = await delete_load(req.params.id);
 		if (!load) {

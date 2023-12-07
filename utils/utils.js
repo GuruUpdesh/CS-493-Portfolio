@@ -18,4 +18,36 @@ const checkJwt = jwt({
 	algorithms: ["RS256"],
 });
 
-module.exports = { getUrl, checkJwt };
+const acceptableRequestTypes = (types, attempted) =>
+	`Invalid Content-Type provided. Acceptable types are: ${types.join(
+		", "
+	)}. You provided: ${attempted}.`;
+function validateMIME(acceptableResponseTypes = []) {
+	return (req, res, next) => {
+		const acceptedTypes = (req.headers["accept"] || "")
+			.split(",")
+			.map((part) => part.split(";")[0].trim())
+			.filter((type) => type);
+
+		const isAnyTypeAcceptable = acceptedTypes.some((acceptedType) => {
+			return (
+				acceptedType === "*/*" ||
+				acceptableResponseTypes.includes(acceptedType)
+			);
+		});
+
+		// validate Accept header for response
+		if (!isAnyTypeAcceptable && acceptableResponseTypes.length > 0) {
+			return res.status(406).json({
+				Error: acceptableRequestTypes(
+					acceptableResponseTypes,
+					acceptedTypes
+				),
+			});
+		}
+
+		next();
+	};
+}
+
+module.exports = { getUrl, checkJwt, validateMIME };

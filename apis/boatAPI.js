@@ -7,7 +7,7 @@ const {
 	delete_boat,
 } = require("../models/boatModel.js");
 const { manage_load } = require("../models/loadModel.js");
-const { getUrl, checkJwt } = require("../utils/utils.js");
+const { getUrl, checkJwt, validateMIME } = require("../utils/utils.js");
 
 const router = express.Router();
 
@@ -38,7 +38,7 @@ function validateBoat(req, res, next) {
 }
 
 // Add a valid boat
-router.post("/", checkJwt, validateBoat, async (req, res) => {
+router.post("/", validateMIME(["application/json"]), checkJwt, validateBoat, async (req, res) => {
 	try {
 		const boat = await post_boat(
 			req.body.name,
@@ -55,7 +55,7 @@ router.post("/", checkJwt, validateBoat, async (req, res) => {
 });
 
 // Get a boat
-router.get("/:id", checkJwt, async (req, res) => {
+router.get("/:id", checkJwt, validateMIME(["application/json"]), async (req, res) => {
 	try {
 		const boat = await get_boat(req.params.id, req.auth.sub, getUrl(req));
 
@@ -70,7 +70,7 @@ router.get("/:id", checkJwt, async (req, res) => {
 });
 
 // Get all boats
-router.get("/", checkJwt, async (req, res) => {
+router.get("/", checkJwt, validateMIME(["application/json"]), async (req, res) => {
 	try {
 		const boats = await get_boats(
 			req.auth.sub,
@@ -85,7 +85,7 @@ router.get("/", checkJwt, async (req, res) => {
 });
 
 // Update a boat
-router.patch("/:id", checkJwt, async (req, res) => {
+router.patch("/:id", checkJwt, validateMIME(["application/json"]), async (req, res) => {
 	try {
 		const boat = {}
 
@@ -113,7 +113,7 @@ router.patch("/:id", checkJwt, async (req, res) => {
 });
 
 // Delete a boat
-router.delete("/:id", checkJwt, async (req, res) => {
+router.delete("/:id", checkJwt, validateMIME(["application/json"]), async (req, res) => {
 	try {
 		const boat = await delete_boat(req.params.id, req.auth.sub);
 
@@ -128,7 +128,7 @@ router.delete("/:id", checkJwt, async (req, res) => {
 });
 
 // Add a load to a boat
-router.put("/:boat_id/loads/:load_id", checkJwt, async (req, res) => {
+router.put("/:boat_id/loads/:load_id", checkJwt, validateMIME(["application/json"]), async (req, res) => {
 	try {
 		await manage_load(req.params.load_id, req.params.boat_id, req.auth.sub);
 		res.status(204).end();
@@ -145,7 +145,7 @@ router.put("/:boat_id/loads/:load_id", checkJwt, async (req, res) => {
 });
 
 // Remove a load from a boat
-router.delete("/:boat_id/loads/:load_id", checkJwt, async (req, res) => {
+router.delete("/:boat_id/loads/:load_id", checkJwt, validateMIME(["application/json"]), async (req, res) => {
 	try {
 		await manage_load(req.params.load_id, req.params.boat_id, req.auth.sub, true);
 		res.status(204).end();
