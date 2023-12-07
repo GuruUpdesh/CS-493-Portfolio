@@ -107,8 +107,12 @@ async function get_boats(owner, baseUrl, cursor) {
 			};
 		});
 
+		const totalQ = datastore.createQuery(BOAT);
+		const [total] = await datastore.runQuery(totalQ);
+
 		let results = {
 			boats: boats,
+			total: total.length,
 		};
 
 		if (info.moreResults !== Datastore.NO_MORE_RESULTS) {

@@ -110,8 +110,12 @@ async function get_loads(baseUrl, cursor) {
 			};
 		});
 
+		const totalQ = datastore.createQuery(LOAD);
+		const [total] = await datastore.runQuery(totalQ);
+
 		let results = {
 			loads: loads,
+			total: total.length,
 		};
 
 		if (info.moreResults !== Datastore.NO_MORE_RESULTS) {
