@@ -3,6 +3,7 @@ const {
 	post_load,
 	get_load,
 	get_loads,
+	patch_load,
 	delete_load,
 } = require("../models/loadModel.js");
 const { getUrl, checkJwt } = require("../utils/utils.js");
@@ -69,13 +70,13 @@ router.get("/", checkJwt, async (req, res) => {
 	}
 });
 
-router.patch("/:id", checkJwt, validateLoad, async (req, res) => {
+router.patch("/:id", checkJwt, async (req, res) => {
 	try {
-		const load = {
-			volume: req.body.volume,
-			item: req.body.item,
-			creation_date: req.body.creation_date,
-		}
+		const load = {}
+
+		// add optional attributes
+		if (req.body.volume) load.volume = req.body.volume;
+		if (req.body.item) load.item = req.body.item;
 
 		const updatedLoad = await patch_load(
 			req.params.id,

@@ -125,6 +125,28 @@ async function get_loads(baseUrl, cursor) {
 	}
 }
 
+async function patch_load(id, load, baseUrl) {
+	try {
+		const key = datastore.key([LOAD, parseInt(id, 10)]);
+		const [data] = await datastore.get(key);
+
+		if (data) {
+			const currentLoad = data;
+			const updateLoad = { ...currentLoad, ...load };
+			await datastore.update({ key, data: updateLoad });
+			return {
+				id: Number(key.id),
+				...updateLoad,
+				self: createSelf(baseUrl, key.id),
+			};
+		}
+		return null;
+	} catch (err) {
+		console.error(err);
+		throw new Error("Datastore Error");
+	}
+}
+
 async function get_boat_loads(boatId, baseUrl) {
     try {
         const q = datastore
@@ -214,6 +236,7 @@ module.exports = {
 	post_load,
 	get_load,
 	get_loads,
+	patch_load,
 	get_boat_loads,
 	manage_load,
 	delete_load,
