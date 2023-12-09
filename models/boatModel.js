@@ -1,5 +1,5 @@
 const { Datastore } = require("@google-cloud/datastore");
-const { BOAT, LOAD } = require("../utils/constants.js");
+const { BOAT, LOAD, RESULTS_PER_PAGE } = require("../utils/constants.js");
 const { AppError, errorMessages } = require("../utils/errorHandler.js");
 
 const datastore = new Datastore();
@@ -29,6 +29,7 @@ async function post_boat(name, type, length, owner, baseUrl) {
 		...new_boat,
 		loads: [],
 		self: createSelf(baseUrl, key.id),
+		root: baseUrl + "/boats",
 	};
 }
 
@@ -50,14 +51,12 @@ async function get_boat(id, owner, baseUrl) {
 		load.id = Number(load[Datastore.KEY].id);
 		return {
 			id: Number(load[Datastore.KEY].id),
-			self: createSelf(baseUrl, load.id, true),
+			self: createSelf(baseUrl, load.id, true)
 		};
 	});
 
-	return { ...addId(entity), self: createSelf(baseUrl, id) };
+	return { ...addId(entity), self: createSelf(baseUrl, id), root: baseUrl + "/boats" };
 }
-
-const RESULTS_PER_PAGE = 5;
 
 async function get_boats(owner, baseUrl, cursor) {
 	const q = datastore
@@ -102,10 +101,13 @@ async function get_boats(owner, baseUrl, cursor) {
 	const totalQ = datastore.createQuery(BOAT);
 	const [total] = await datastore.runQuery(totalQ);
 
-	let results = {
+	const results = {
 		boats: boats,
-		total: total.length,
 	};
+
+	if (total) {
+		results.total = total.length;
+	}
 
 	if (info.moreResults !== Datastore.NO_MORE_RESULTS) {
 		results.next = baseUrl + "/boats?cursor=" + info.endCursor;
@@ -133,6 +135,7 @@ async function patch_boat(id, boat, owner, baseUrl) {
 		id: Number(key.id),
 		...updateBoat,
 		self: createSelf(baseUrl, key.id),
+		root: baseUrl + "/boats",
 	};
 }
 

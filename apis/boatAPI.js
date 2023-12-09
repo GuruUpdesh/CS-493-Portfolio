@@ -175,4 +175,8 @@ router.delete(
 	}
 );
 
+router.put("/", (req, res) => {
+	return res.status(405).end();
+});
+
 module.exports = router;

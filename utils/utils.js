@@ -20,7 +20,7 @@ const checkJwt = jwt({
 });
 
 const acceptableRequestTypes = (types, attempted) =>
-	`Invalid Content-Type provided. Acceptable types are: ${types.join(
+	`Invalid Accept type provided. Acceptable types are: ${types.join(
 		", "
 	)}. You provided: ${attempted}.`;
 function validateMIME(acceptableResponseTypes = []) {

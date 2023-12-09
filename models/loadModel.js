@@ -1,5 +1,5 @@
 const { Datastore } = require("@google-cloud/datastore");
-const { LOAD, BOAT } = require("../utils/constants.js");
+const { LOAD, BOAT, RESULTS_PER_PAGE } = require("../utils/constants.js");
 const { AppError, errorMessages } = require("../utils/errorHandler.js");
 
 const datastore = new Datastore();
@@ -28,6 +28,7 @@ async function post_load(volume, item, creation_date, baseUrl) {
 		id: Number(key.id),
 		...new_load,
 		self: createSelf(baseUrl, key.id),
+		root: baseUrl + "/loads",
 	};
 }
 
@@ -45,16 +46,13 @@ async function get_load(id, baseUrl) {
 			entity.carrier = {
 				id: Number(boat[Datastore.KEY].id),
 				name: boat.name,
-				self: createSelf(baseUrl, boat[Datastore.KEY].id, true),
+				self: createSelf(baseUrl, boat[Datastore.KEY].id, true)
 			};
 		}
 	}
 
-	return { ...addId(entity), self: createSelf(baseUrl, id) };
+	return { ...addId(entity), self: createSelf(baseUrl, id), root: baseUrl + "/loads" };
 }
-
-// todo: move to constants.js
-const RESULTS_PER_PAGE = 5;
 
 async function get_loads(baseUrl, cursor) {
 	const q = datastore.createQuery(LOAD).limit(RESULTS_PER_PAGE);
@@ -105,8 +103,11 @@ async function get_loads(baseUrl, cursor) {
 
 	const results = {
 		loads: loads,
-		total: total.length,
 	};
+
+	if (total) {
+		results.total = total.length;
+	}
 
 	if (info.moreResults !== Datastore.NO_MORE_RESULTS) {
 		results.next = baseUrl + "/loads?cursor=" + info.endCursor;
@@ -130,6 +131,7 @@ async function patch_load(id, load, baseUrl) {
 		id: Number(key.id),
 		...updateLoad,
 		self: createSelf(baseUrl, key.id),
+		root: baseUrl + "/loads"
 	};
 }
 

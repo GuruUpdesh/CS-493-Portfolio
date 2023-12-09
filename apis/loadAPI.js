@@ -30,7 +30,6 @@ function validateLoad(req, res, next) {
 
 router.post(
 	"/",
-	checkJwt,
 	validateMIME(["application/json"]),
 	validateLoad,
 	async (req, res, next) => {
@@ -50,7 +49,6 @@ router.post(
 
 router.get(
 	"/:id",
-	checkJwt,
 	validateMIME(["application/json"]),
 	async (req, res, next) => {
 		try {
@@ -64,7 +62,6 @@ router.get(
 
 router.get(
 	"/",
-	checkJwt,
 	validateMIME(["application/json"]),
 	async (req, res, next) => {
 		try {
@@ -78,7 +75,6 @@ router.get(
 
 router.patch(
 	"/:id",
-	checkJwt,
 	validateMIME(["application/json"]),
 	async (req, res, next) => {
 		try {
@@ -107,7 +103,6 @@ router.patch(
 
 router.delete(
 	"/:id",
-	checkJwt,
 	validateMIME(["application/json"]),
 	async (req, res, next) => {
 		try {
@@ -121,5 +116,9 @@ router.delete(
 		}
 	}
 );
+
+router.put("/", (req, res) => {
+	return res.status(405).end();
+});
 
 module.exports = router;
