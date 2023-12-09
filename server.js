@@ -21,7 +21,7 @@ const config = {
 	auth0Logout: true,
 	secret: process.env.SECRET,
 	baseURL: process.env.PORT
-		? "https://assignment-7-jwt-405019.uw.r.appspot.com"
+		? "https://cs-493-final-project-407120.uw.r.appspot.com"
 		: "http://localhost:3000",
 	clientID: "EbbGFz3QByoRblpMYSzFJbIqUrfEndn5",
 	issuerBaseURL: "https://dev-qx1yfds0nk5wzi0n.us.auth0.com",
