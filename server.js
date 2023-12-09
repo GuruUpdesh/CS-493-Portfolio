@@ -13,7 +13,7 @@ const {add_user, get_users} = require("./models/userModel.js");
 const path = require(`path`);
 require("dotenv").config();
 const { auth } = require("express-openid-connect");
-const { get } = require("http");
+const {errorHandler} = require("./utils/errorHandler.js");
 
 // auth config
 const config = {
@@ -58,14 +58,11 @@ app.get("/", (req, res) => {
 });
 
 app.get("/users", async (req, res) => {
-    try {
-        const users = await get_users();
-        res.status(200).json(users);
-    } catch {
-        console.error(err);
-		return res.status(500).json({Error: "Internal server error"});
-    }
+	const users = await get_users();
+	res.status(200).json(users);
 })
+
+app.use(errorHandler)
 
 // Listen to the App Engine-specified port, or 3000 otherwise
 const PORT = process.env.PORT || 3000;

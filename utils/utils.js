@@ -1,6 +1,7 @@
 const { expressjwt: jwt } = require("express-jwt");
 const jwksRsa = require("jwks-rsa");
 const { DOMAIN } = require("../utils/constants.js");
+const { AppError } = require("./errorHandler.js");
 
 function getUrl(req) {
 	const protocol = process.env.PORT ? "https" : "http";
@@ -38,12 +39,10 @@ function validateMIME(acceptableResponseTypes = []) {
 
 		// validate Accept header for response
 		if (!isAnyTypeAcceptable && acceptableResponseTypes.length > 0) {
-			return res.status(406).json({
-				Error: acceptableRequestTypes(
-					acceptableResponseTypes,
-					acceptedTypes
-				),
-			});
+			throw new AppError(
+				406,
+				acceptableRequestTypes(acceptableResponseTypes, acceptedTypes)
+			);
 		}
 
 		next();
