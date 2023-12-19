@@ -1,9 +1,5 @@
 # Portfolio Assignment: Final Project
 
-App: [https://cs-493-final-project-407120.uw.r.appspot.com](https://cs-493-final-project-407120.uw.r.appspot.com/)
-
-Login:  [/login](https://cs-493-final-project-407120.uw.r.appspot.com/login)
-
 ## Data Model
 
 ### Boats
